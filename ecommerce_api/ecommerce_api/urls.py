@@ -4,4 +4,5 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/customers/', include('customers.urls', namespace='customers')),
+    path('api/categories/', include('categories.urls', namespace='categories')),
 ]
