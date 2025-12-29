@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'customers.apps.CustomersConfig',
     'categories.apps.CategoriesConfig',
+    'products.apps.ProductsConfig',
 
 
 ]
