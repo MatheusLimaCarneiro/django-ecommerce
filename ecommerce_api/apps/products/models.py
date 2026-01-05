@@ -5,13 +5,15 @@ from apps.categories.models import Category
 class Product(models.Model):
     name = models.CharField(max_length=255)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
-    description = models.TextField(blank=True, null=True)
+    description = models.TextField("Descrição",blank=True, null=True)
     price = models.DecimalField(
+        "Preço",
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)]
         )
     stock = models.IntegerField(
+        "Estoque",
         validators=[MinValueValidator(0)]
     )
     is_active = models.BooleanField(default=True)
