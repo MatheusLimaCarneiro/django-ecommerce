@@ -7,4 +7,6 @@ urlpatterns = [
     path('api/categories/', include('apps.categories.urls', namespace='categories')),
     path('api/products/', include('apps.products.urls', namespace='products')),
     path('api/carts/', include('apps.carts.urls', namespace='carts')),
+    path('api/cart-items/', include('apps.cart_items.urls', namespace='cart_items')),
+
 ]
