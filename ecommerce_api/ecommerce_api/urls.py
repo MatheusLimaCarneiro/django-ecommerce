@@ -8,5 +8,6 @@ urlpatterns = [
     path('api/products/', include('apps.products.urls', namespace='products')),
     path('api/carts/', include('apps.carts.urls', namespace='carts')),
     path('api/cart-items/', include('apps.cart_items.urls', namespace='cart_items')),
+    path('api/orders/', include('apps.orders.urls', namespace='orders')),
 
 ]
