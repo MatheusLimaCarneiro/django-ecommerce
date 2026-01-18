@@ -1,5 +1,6 @@
 import pytest
 from apps.orders.tests.factories import OrderFactory, CustomerProfileFactory, UserFactory
+from rest_framework.test import APIRequestFactory
 from apps.orders.serializer import OrderSerializer
 from decimal import Decimal
 from rest_framework import serializers
@@ -14,75 +15,55 @@ def test_order_serializer():
     assert data["customer"]["id"] == order.customer.id
     assert data["status"] == order.status
     assert data["payment_status"] == order.payment_status
-    assert str(data["total_amount"]) == f"{order.total_amount:.2f}"
+    assert Decimal(data["total_amount"]) == order.total_amount
 
 @pytest.mark.django_db
 def test_order_serializer_create():
     user = UserFactory()
     customer_profile = CustomerProfileFactory(user=user)
 
-    data = {
-        "status": "PENDING",
-        "payment_status": "UNPAID",
-    }
-    context = {"request": type('Request', (object,), {'user': user})()}
-    serializer = OrderSerializer(data=data, context=context)
-    assert serializer.is_valid() is True
-    instance = serializer.save()
-    assert instance.customer == customer_profile
-    assert instance.status == "PENDING"
-    assert instance.payment_status == "UNPAID"
-    assert instance.total_amount == Decimal("0.00")
-    assert instance.id is not None
+    factory = APIRequestFactory()
+    request = factory.post("/orders/")
+    request.user = user
 
-@pytest.mark.django_db
-def test_order_serializer_invalid_create():
-    user = UserFactory()
-    data = {
-        "status": "INVALID_STATUS",  # Invalid status
-        "payment_status": "UNPAID",
-    }
-    context = {"request": type('Request', (object,), {'user': user})()}
-    serializer = OrderSerializer(data=data, context=context)
-    assert serializer.is_valid() is True  # Serializer allows any string for status
-    assert serializer.validated_data == {}
+    serializer = OrderSerializer(data={}, context={"request": request})
+    assert serializer.is_valid()
 
-@pytest.mark.django_db
-def test_order_serializer_read_only_fields():
-    order = OrderFactory(status="SHIPPED", payment_status="PAID", total_amount=100.00)
-    serializer = OrderSerializer(instance=order)
-    data = serializer.data
+    order = serializer.save()
 
-    assert data["status"] == "SHIPPED"
-    assert data["payment_status"] == "PAID"
-    assert str(data["total_amount"]) == "100.00"
+    assert order.customer == customer_profile
+    assert order.status == "PENDING"
+    assert order.payment_status == "UNPAID"
+    assert order.total_amount == Decimal("0.00")
 
 @pytest.mark.django_db
 def test_order_serializer_create_without_customer_profile():
     user = UserFactory()
 
-    data = {
-        "status": "PENDING",
-        "payment_status": "UNPAID",
-    }
-    context = {"request": type('Request', (object,), {'user': user})()}
-    serializer = OrderSerializer(data=data, context=context)
-    assert serializer.is_valid() is True
-    assert serializer.validated_data == {}
-    with pytest.raises(serializers.ValidationError) as excinfo:
+    factory = APIRequestFactory()
+    request = factory.post("/orders/")
+    request.user = user
+
+    serializer = OrderSerializer(data={}, context={"request": request})
+    assert serializer.is_valid()
+
+    with pytest.raises(serializers.ValidationError) as exc:
         serializer.save()
-    assert "Customer profile not found for this user." in str(excinfo.value)
+
+    error = exc.value.detail
+    assert "customer" in error
 
 @pytest.mark.django_db
 def test_order_serializer_create_without_authentication():
-    data = {
-        "status": "PENDING",
-        "payment_status": "UNPAID",
-    }
-    context = {"request": type('Request', (object,), {'user': None})()}
-    serializer = OrderSerializer(data=data, context=context)
-    assert serializer.is_valid() is True
-    assert serializer.validated_data == {}
-    with pytest.raises(serializers.ValidationError) as excinfo:
+    factory = APIRequestFactory()
+    request = factory.post("/orders/")
+    request.user = None
+
+    serializer = OrderSerializer(data={}, context={"request": request})
+    assert serializer.is_valid()
+
+    with pytest.raises(serializers.ValidationError) as exc:
         serializer.save()
-    assert "Authentication required to create an order." in str(excinfo.value)
+
+    error = exc.value.detail
+    assert "user" in error

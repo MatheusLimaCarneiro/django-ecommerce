@@ -27,8 +27,6 @@ class OrderSerializer(serializers.ModelSerializer):
 
         order = Order.objects.create(
             customer=customer_profile,
-            status=validated_data.get('status', 'PENDING'),
-            payment_status=validated_data.get('payment_status', 'UNPAID'),
         )
 
         return order

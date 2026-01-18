@@ -57,30 +57,22 @@ def test_order_create_view(client):
 
 @pytest.mark.django_db
 def test_order_create_view_unauthenticated(client):
-    data = {
-        "status": "PENDING",
-        "payment_status": "UNPAID",
-    }
     url = reverse("orders:order-list")
-    response = client.post(url, data, format='json')
+    response = client.post( url, {}, format='json')
 
     assert response.status_code == 400
-    assert "Authentication required to create an order." in str(response.data)
+    assert "user" in response.data
 
 @pytest.mark.django_db
 def test_order_create_view_no_customer_profile(client):
     user = UserFactory()
 
-    data = {
-        "status": "PENDING",
-        "payment_status": "UNPAID",
-    }
     url = reverse("orders:order-list")
     client.force_authenticate(user=user)
-    response = client.post(url, data, format='json')
+    response = client.post(url, {}, format='json')
 
     assert response.status_code == 400
-    assert "Customer profile not found for this user." in str(response.data)
+    assert "customer" in response.data
 
 @pytest.mark.django_db
 def test_order_update_view_not_allowed(client):

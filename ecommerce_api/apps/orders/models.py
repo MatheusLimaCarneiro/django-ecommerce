@@ -1,6 +1,7 @@
 from django.db import models
 from apps.customers.models import CustomerProfile
 from django.core.validators import MinValueValidator
+from django.db.models import Sum
 
 class Order(models.Model):
     customer = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE, related_name='orders')
@@ -20,10 +21,21 @@ class Order(models.Model):
         ('CANCELLED', 'Cancelled'),
     ]
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='PENDING', verbose_name="status do pedido")
-    payment_status = models.CharField("Status do pagamento",max_length=50)
+    PAYMENT_STATUS_CHOICES = [
+        ('UNPAID', 'Unpaid'),
+        ('PAID', 'Paid'),
+        ('REFUNDED', 'Refunded'),
+    ]
+    payment_status = models.CharField("Status do pagamento",max_length=50, choices=PAYMENT_STATUS_CHOICES, default='UNPAID')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def update_total_amount(self):
+        total = self.order_items.aggregate(
+            total_amount=Sum('subtotal')
+        )['total_amount'] or 0
+        self.total_amount = total
+        self.save()
     class Meta:
         verbose_name = "Pedido"
         verbose_name_plural = "Pedidos"

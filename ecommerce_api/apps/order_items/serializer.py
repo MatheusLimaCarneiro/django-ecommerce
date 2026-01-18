@@ -32,8 +32,11 @@ class OrderItemSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
        product = validated_data['product']
        quantity = validated_data['quantity']
+       order = validated_data['order']
        
        validated_data['unit_price'] = product.price
        validated_data['subtotal'] = product.price * quantity
-       
-       return super().create(validated_data)
+
+       order_item = super().create(validated_data)
+       order.update_total_amount()
+       return order_item
