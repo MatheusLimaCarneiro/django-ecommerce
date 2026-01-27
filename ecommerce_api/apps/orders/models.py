@@ -11,7 +11,7 @@ class Order(models.Model):
         decimal_places=2,
         default=0,
         validators=[MinValueValidator(0)]
-        ) # Calculated from OrderItems in future versions (currently set to 0 by default)
+        )
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),
         ('CONFIRMED', 'Confirmed'),

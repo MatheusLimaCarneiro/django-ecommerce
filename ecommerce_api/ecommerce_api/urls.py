@@ -10,5 +10,6 @@ urlpatterns = [
     path('api/cart-items/', include('apps.cart_items.urls', namespace='cart_items')),
     path('api/orders/', include('apps.orders.urls', namespace='orders')),
     path('api/order-items/', include('apps.order_items.urls', namespace='order_items')),
+    path('api/payments/', include('apps.payments.urls', namespace='payments')),
 
 ]
