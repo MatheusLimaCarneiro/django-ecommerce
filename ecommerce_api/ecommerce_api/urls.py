@@ -11,5 +11,6 @@ urlpatterns = [
     path('api/orders/', include('apps.orders.urls', namespace='orders')),
     path('api/order-items/', include('apps.order_items.urls', namespace='order_items')),
     path('api/payments/', include('apps.payments.urls', namespace='payments')),
+    path('api/reviews/', include('apps.reviews.urls', namespace='reviews')),
 
 ]
