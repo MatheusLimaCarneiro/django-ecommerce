@@ -34,4 +34,9 @@ class PaymentViewSet(
         payment.paid_at = timezone.now()
         payment.save()
 
+        order = payment.order
+        order.payment_status = 'PAID'
+        order.status = 'CONFIRMED'
+        order.save()
+
         return Response({'detail': 'Payment confirmed successfully.'})
