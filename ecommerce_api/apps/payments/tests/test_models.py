@@ -86,3 +86,29 @@ def test_payment_factory():
     assert isinstance(payment, Payment)
     assert payment.method in dict(Payment.Method.choices)
     assert payment.status in dict(Payment.Status.choices)
+
+@pytest.mark.django_db
+def test_confirm_payment():
+    payment = PaymentFactory(status=Payment.Status.PENDING)
+    order = payment.order
+
+    payment.confirm_payment()
+
+    payment.refresh_from_db()
+    order.refresh_from_db()
+
+    assert payment.status == Payment.Status.PAID
+    assert payment.paid_at is not None
+    assert payment.order.payment_status == payment.order.PaymentStatus.PAID
+    assert payment.order.status == payment.order.Status.CONFIRMED
+
+@pytest.mark.django_db
+def test_confirm_payment_invalid_status():
+    payment = PaymentFactory(status=Payment.Status.PAID)
+
+    with pytest.raises(ValidationError):
+        payment.confirm_payment()
+
+    payment.refresh_from_db()
+    assert payment.status == Payment.Status.PAID
+    assert payment.paid_at is None

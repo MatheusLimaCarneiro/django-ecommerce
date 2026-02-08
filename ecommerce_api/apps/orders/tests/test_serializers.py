@@ -12,7 +12,7 @@ def test_order_serializer():
     data = serializer.data
 
     assert data["id"] == order.id
-    assert data["customer"]["id"] == order.customer.id
+    assert data["customer"] == order.customer.id
     assert data["status"] == order.status
     assert data["payment_status"] == order.payment_status
     assert Decimal(data["total_amount"]) == order.total_amount

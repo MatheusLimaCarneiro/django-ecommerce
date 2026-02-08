@@ -1,10 +1,9 @@
 from rest_framework import serializers
 from .models import Order
-from apps.customers.serializer import CustomerProfileSerializer
 from apps.customers.models import CustomerProfile
 
 class OrderSerializer(serializers.ModelSerializer):
-    customer = CustomerProfileSerializer(read_only=True)
+    customer = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Order
