@@ -2,6 +2,9 @@ import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
 from apps.payments.tests.factories import PaymentFactory, OrderFactory, CustomerProfileFactory
+from apps.payments.models import Payment
+from unittest.mock import patch
+from django.core.exceptions import ValidationError
 
 @pytest.fixture
 def client():
@@ -149,3 +152,68 @@ def test_payment_create_view_zero_amount_order(client):
     assert response.data["status"] == "PAID"
     assert response.data["paid_at"] is not None
     assert response.data["id"] is not None
+
+@pytest.mark.django_db
+def test_payment_confirm_action_payment(client):
+    payment = PaymentFactory(status=Payment.Status.PENDING)
+    customer = payment.order.customer.user
+
+    client.force_authenticate(user=customer)
+
+    url = reverse("payments:payment-confirm", args=[payment.id])
+    response = client.post(url)
+
+    assert response.status_code == 200
+    assert response.data["detail"] == "Payment confirmed successfully."
+
+    payment.refresh_from_db()
+    order = payment.order
+    order.refresh_from_db()
+
+    assert payment.status == Payment.Status.PAID
+    assert order.status == order.Status.CONFIRMED
+    assert payment.paid_at is not None
+
+@pytest.mark.django_db
+def test_payment_confirm_action_invalid_status(client):
+    payment = PaymentFactory(status=Payment.Status.PAID)
+    customer = payment.order.customer.user
+
+    client.force_authenticate(user=customer)
+
+    url = reverse("payments:payment-confirm", args=[payment.id])
+    response = client.post(url)
+
+    assert response.status_code == 400
+    assert "detail" in response.data
+
+@pytest.mark.django_db
+def test_payment_confirm_action_forbidden(client):
+    payment = PaymentFactory(status=Payment.Status.PENDING)
+    customer = CustomerProfileFactory().user
+
+    client.force_authenticate(user=customer)
+
+    url = reverse("payments:payment-confirm", args=[payment.id])
+    response = client.post(url)
+
+    assert response.status_code in [403, 404]  # Depending on whether the view checks for ownership before confirming payment
+    
+@pytest.mark.django_db
+def test_confirm_payment_transaction_rollback():
+    payment = PaymentFactory(status=Payment.Status.PENDING)
+    order = payment.order
+
+    with patch(
+        'apps.payments.models.Order.mark_as_paid',
+        side_effect=ValidationError("Order error")
+    ):
+        with pytest.raises(ValidationError):
+            payment.confirm_payment()
+
+    payment.refresh_from_db()
+    order.refresh_from_db()
+
+    assert payment.status == Payment.Status.PENDING
+    assert order.payment_status == order.PaymentStatus.UNPAID
+    assert payment.paid_at is None

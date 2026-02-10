@@ -8,8 +8,8 @@ from decimal import Decimal
 def test_create_order():
     order = OrderFactory()
     assert order.id is not None
-    assert order.status == "PENDING"
-    assert order.payment_status == "UNPAID"
+    assert order.status == Order.Status.PENDING
+    assert order.payment_status == Order.PaymentStatus.UNPAID
     assert order.total_amount == Decimal("0.00")
 
 @pytest.mark.django_db
@@ -34,8 +34,8 @@ def test_order_factory():
     order = OrderFactory(customer=customer_profile)
 
     assert isinstance(order.customer, type(customer_profile))
-    assert order.status == "PENDING"
-    assert order.payment_status == "UNPAID"
+    assert order.status == Order.Status.PENDING
+    assert order.payment_status == Order.PaymentStatus.UNPAID
     assert order.total_amount == 0.00
 
 @pytest.mark.django_db
@@ -70,8 +70,8 @@ def test_update_total_amount_with_no_items_sets_zero():
 
 @pytest.mark.django_db
 def test_order_status_choices():
-    order = OrderFactory(status='CONFIRMED')
-    assert order.status == 'CONFIRMED'
+    order = OrderFactory(status=Order.Status.CONFIRMED)
+    assert order.status == order.Status.CONFIRMED
 
     with pytest.raises(ValidationError):
         order.status = 'INVALID_STATUS'
@@ -79,9 +79,17 @@ def test_order_status_choices():
 
 @pytest.mark.django_db
 def test_order_payment_status_choices():
-    order = OrderFactory(payment_status='PAID')
-    assert order.payment_status == 'PAID'
+    order = OrderFactory(payment_status=Order.PaymentStatus.PAID)
+    assert order.payment_status == order.PaymentStatus.PAID
 
     with pytest.raises(ValidationError):
         order.payment_status = 'INVALID_STATUS'
         order.full_clean()
+
+@pytest.mark.django_db
+def test_mark_order_as_paid():
+    order = OrderFactory()
+    order.mark_as_paid()
+
+    order.refresh_from_db()
+    assert order.payment_status == Order.PaymentStatus.PAID

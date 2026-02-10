@@ -3,6 +3,8 @@ from apps.orders.models import Order
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
+from django.utils import timezone
+from django.db import transaction
 
 class Payment(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='payment')
@@ -33,6 +35,23 @@ class Payment(models.Model):
             raise ValidationError({
                 'method': "This payment method cannot be used for zero amount orders."
             })
+
+    def confirm_payment(self):
+        if self.status != self.Status.PENDING:
+            raise ValidationError("Payment is already confirmed or failed.")
+
+        with transaction.atomic():
+            self.status = self.Status.PAID
+            self.paid_at = timezone.now()
+            self.save(update_fields=['status', 'paid_at'])
+
+            self.order.mark_as_paid()
+
+    class Meta:
+        verbose_name = "Pagamento"
+        verbose_name_plural = "Pagamentos"
+        ordering = ['-created_at', 'id']
+
 
     def __str__(self):
         return f"Payment #{self.id} | Order #{self.order_id} | {self.method} | {self.status}"
