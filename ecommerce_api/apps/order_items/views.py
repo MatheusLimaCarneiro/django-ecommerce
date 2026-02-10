@@ -4,11 +4,19 @@ from .serializer import OrderItemSerializer
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 class OrderItemViewSet(
-    mixins.CreateModelMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
-    queryset = OrderItem.objects.all()
     serializer_class = OrderItemSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_anonymous:
+            return OrderItem.objects.none()
+
+        return OrderItem.objects.filter(
+            order__customer__user=self.request.user
+        )

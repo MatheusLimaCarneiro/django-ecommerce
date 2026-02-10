@@ -1,7 +1,7 @@
 import pytest
 from decimal import Decimal
 from apps.order_items.serializer import OrderItemSerializer
-from apps.order_items.tests.factories import OrderItemFactory, OrderFactory, ProductFactory, UserFactory, CustomerProfileFactory
+from apps.order_items.tests.factories import OrderItemFactory, OrderFactory, ProductFactory
 
 @pytest.mark.django_db
 def test_order_item_serializer():
@@ -10,7 +10,6 @@ def test_order_item_serializer():
     data = serializer.data
 
     assert data["id"] == order_item.id
-    assert data["order"] == order_item.order.id
     assert data["product"] == order_item.product.id
     assert data["quantity"] == order_item.quantity
     assert str(data["unit_price"]) == f"{order_item.unit_price:.2f}"
@@ -18,19 +17,15 @@ def test_order_item_serializer():
 
 @pytest.mark.django_db
 def test_order_item_serializer_create():
-    user = UserFactory()
-    customer_profile = CustomerProfileFactory(user=user)
-    order = OrderFactory(customer=customer_profile)
+    order = OrderFactory()
     product = ProductFactory(stock=10, price=Decimal("15.00"))
 
     data = {
-        "order": order.id,
         "product": product.id,
         "quantity": 2
     }
-    serializer = OrderItemSerializer(data=data)
+    serializer = OrderItemSerializer(data=data, context={"order": order})
     assert serializer.is_valid() is True
-    assert serializer.errors == {}
     instance = serializer.save()
     assert instance.order == order
     assert instance.product == product
@@ -45,11 +40,10 @@ def test_order_item_serializer_invalid_product_inactive():
     product = ProductFactory(is_active=False)
 
     data = {
-        "order": order.id,
         "product": product.id,
         "quantity": 1
     }
-    serializer = OrderItemSerializer(data=data)
+    serializer = OrderItemSerializer(data=data, context={"order": order})
     assert serializer.is_valid() is False
     assert "non_field_errors" in serializer.errors
 
@@ -60,11 +54,10 @@ def test_order_item_serializer_invalid_product_out_of_stock():
     product = ProductFactory(stock=0)
 
     data = {
-        "order": order.id,
         "product": product.id,
         "quantity": 1
     }
-    serializer = OrderItemSerializer(data=data)
+    serializer = OrderItemSerializer(data=data, context={"order": order})
     assert serializer.is_valid() is False
     assert "non_field_errors" in serializer.errors
 
@@ -74,11 +67,10 @@ def test_order_item_serializer_invalid_insufficient_stock():
     product = ProductFactory(stock=5)
 
     data = {
-        "order": order.id,
         "product": product.id,
         "quantity": 10
     }
-    serializer = OrderItemSerializer(data=data)
+    serializer = OrderItemSerializer(data=data, context={"order": order})
     assert serializer.is_valid() is False
     assert "non_field_errors" in serializer.errors
 
@@ -97,11 +89,10 @@ def test_order_item_serializer_create_with_zero_quantity():
     product = ProductFactory(stock=10)
 
     data = {
-        "order": order.id,
         "product": product.id,
         "quantity": 0
     }
-    serializer = OrderItemSerializer(data=data)
+    serializer = OrderItemSerializer(data=data, context={"order": order})
     assert serializer.is_valid() is False
     assert "quantity" in serializer.errors
 
@@ -111,10 +102,9 @@ def test_order_item_serializer_create_with_negative_quantity():
     product = ProductFactory(stock=10)
 
     data = {
-        "order": order.id,
         "product": product.id,
         "quantity": -5
     }
-    serializer = OrderItemSerializer(data=data)
+    serializer = OrderItemSerializer(data=data, context={"order": order})
     assert serializer.is_valid() is False
     assert "quantity" in serializer.errors

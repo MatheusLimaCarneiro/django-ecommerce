@@ -11,7 +11,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = ['id', 'order', 'product', 'quantity', 'unit_price', 'subtotal']
+        fields = ['id','product', 'quantity', 'unit_price', 'subtotal']
         read_only_fields = ['unit_price', 'subtotal']
 
     def validate(self, data):
@@ -27,15 +27,19 @@ class OrderItemSerializer(serializers.ModelSerializer):
         if quantity > product.stock:
             raise serializers.ValidationError("Insufficient stock.")
 
+        if quantity <= 0:
+            raise serializers.ValidationError("Quantity must be greater than zero.")
+
         return data
 
     def create(self, validated_data):
        product = validated_data['product']
        quantity = validated_data['quantity']
-       order = validated_data['order']
+       order = self.context['order']
        
        validated_data['unit_price'] = product.price
        validated_data['subtotal'] = product.price * quantity
+       validated_data['order'] = order
 
        order_item = super().create(validated_data)
        order.update_total_amount()
