@@ -49,4 +49,4 @@ class Order(models.Model):
         ordering = ['-created_at', 'id']
 
     def __str__(self):
-        return f"Order {self.id} for {self.customer}"
+        return f"Order #{self.id} | Customer #{self.customer_id}"

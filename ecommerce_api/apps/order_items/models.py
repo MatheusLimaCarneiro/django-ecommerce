@@ -35,4 +35,4 @@ class OrderItem(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.quantity} X {self.product.name}"
+        return f"OrderItem #{self.id} | Order #{self.order_id} | Product #{self.product_id}"

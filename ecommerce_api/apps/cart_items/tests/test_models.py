@@ -16,7 +16,7 @@ def test_create_cart_item():
 @pytest.mark.django_db
 def test_cart_item_str():
     cart_item = CartItemFactory(quantity=3)
-    expected_str = f"3 X {cart_item.product}"
+    expected_str = f"CartItem #{cart_item.id} | Cart #{cart_item.cart_id} | Product #{cart_item.product_id}"
     assert str(cart_item) == expected_str
 
 @pytest.mark.django_db

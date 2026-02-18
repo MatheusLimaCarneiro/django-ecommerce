@@ -24,4 +24,4 @@ class CartItem(models.Model):
         unique_together = ('cart', 'product')
 
     def __str__(self):
-        return f"{self.quantity} X {self.product}"
+        return f"CartItem #{self.id} | Cart #{self.cart_id} | Product #{self.product_id}"

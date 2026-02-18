@@ -16,7 +16,7 @@ def test_create_order_item():
 @pytest.mark.django_db
 def test_order_item_str():
     order_item = OrderItemFactory()
-    expected_str = f'{order_item.quantity} X {order_item.product.name}'
+    expected_str = f'OrderItem #{order_item.id} | Order #{order_item.order_id} | Product #{order_item.product_id}'
     assert str(order_item) == expected_str
 
 @pytest.mark.django_db
