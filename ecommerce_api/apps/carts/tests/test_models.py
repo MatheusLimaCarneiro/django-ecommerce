@@ -25,7 +25,9 @@ def test_cart_str():
 
     cart = Cart.objects.create(user = customer)
 
-    assert str(cart) == "Cart of {}".format(customer)
+    expected_str = "Cart of {}".format(customer)
+
+    assert str(cart) == expected_str
 
 
 @pytest.mark.django_db

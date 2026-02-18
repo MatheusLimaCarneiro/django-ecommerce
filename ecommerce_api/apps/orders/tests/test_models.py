@@ -16,7 +16,7 @@ def test_create_order():
 def test_order_str():
     customer_profile = CustomerProfileFactory()
     order = OrderFactory(customer=customer_profile)
-    expected_str = f"Order {order.id} for {customer_profile}"
+    expected_str = f"Order #{order.id} | Customer #{customer_profile.id}"
     assert str(order) == expected_str
 
 @pytest.mark.django_db
