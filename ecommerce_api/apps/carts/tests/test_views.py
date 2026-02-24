@@ -11,6 +11,9 @@ def test_cart_list_view():
 
     user = User.objects.create_user(username="matheus", password="123")
     customer = CustomerProfile.objects.create(user=user)
+
+    client.force_authenticate(user=user)
+
     Cart.objects.create(user=customer)
 
     url = reverse("carts:carts-list")
@@ -26,6 +29,9 @@ def test_cart_retrieve_view():
 
     user = User.objects.create_user(username="matheus", password="123")
     customer = CustomerProfile.objects.create(user=user)
+
+    client.force_authenticate(user=user)
+    
     cart = Cart.objects.create(user=customer)
 
     url = reverse("carts:carts-detail", args=[cart.id])
@@ -41,6 +47,8 @@ def test_cart_create_view():
 
     user = User.objects.create_user(username="matheus", password="123")
     customer = CustomerProfile.objects.create(user=user)
+
+    client.force_authenticate(user=user)
 
     url = reverse("carts:carts-list")
     data = {
@@ -58,6 +66,9 @@ def test_cart_update_not_allowed():
 
     user = User.objects.create_user(username="matheus", password="123")
     customer = CustomerProfile.objects.create(user=user)
+
+    client.force_authenticate(user=user)
+
     cart = Cart.objects.create(user=customer)
 
     url = reverse("carts:carts-detail", args=[cart.id])
@@ -71,6 +82,9 @@ def test_cart_delete_view():
 
     user = User.objects.create_user(username="matheus", password="123")
     customer = CustomerProfile.objects.create(user=user)
+
+    client.force_authenticate(user=user)
+
     cart = Cart.objects.create(user=customer)
 
     url = reverse("carts:carts-detail", args=[cart.id])

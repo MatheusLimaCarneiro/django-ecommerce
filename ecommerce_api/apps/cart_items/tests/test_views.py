@@ -12,6 +12,8 @@ def client():
 def test_cart_item_list_view(client):
     cart_item = CartItemFactory()
 
+    client.force_authenticate(user=cart_item.cart.user.user)
+
     url = reverse("cart_items:cart-item-list")
     response = client.get(url)
 
@@ -24,6 +26,8 @@ def test_cart_item_list_view(client):
 @pytest.mark.django_db
 def test_cart_item_retrieve_view(client):
     cart_item = CartItemFactory()
+
+    client.force_authenticate(user=cart_item.cart.user.user)
 
     url = reverse("cart_items:cart-item-detail", args=[cart_item.id])
     response = client.get(url)
@@ -45,6 +49,9 @@ def test_cart_item_create_view(client):
         "quantity": 3,
         "price_at_time": "10.00"
     }
+
+    client.force_authenticate(user=cart.user.user)
+
     url = reverse("cart_items:cart-item-list")
     response = client.post(url, data, format='json')
 
@@ -58,6 +65,8 @@ def test_cart_item_create_view(client):
 def test_cart_item_update_view(client):
     cart_item = CartItemFactory()
 
+    client.force_authenticate(user=cart_item.cart.user.user)
+    
     url = reverse("cart_items:cart-item-detail", args=[cart_item.id])
     data = {
         "cart": cart_item.cart.id,
@@ -74,6 +83,8 @@ def test_cart_item_update_view(client):
 def test_cart_item_delete_view(client):
     cart_item = CartItemFactory()
 
+    client.force_authenticate(user=cart_item.cart.user.user)
+    
     url = reverse("cart_items:cart-item-detail", args=[cart_item.id])
     response = client.delete(url)
 
@@ -83,6 +94,8 @@ def test_cart_item_delete_view(client):
 @pytest.mark.django_db
 def test_cart_item_partial_update_view(client):
     cart_item = CartItemFactory()
+
+    client.force_authenticate(user=cart_item.cart.user.user)
 
     url = reverse("cart_items:cart-item-detail", args=[cart_item.id])
     data = {
@@ -105,6 +118,8 @@ def test_cart_item_create_exceeding_stock(client):
         "price_at_time": "10.00"
     }
 
+    client.force_authenticate(user=cart.user.user)
+
     url = reverse("cart_items:cart-item-list")
     response = client.post(url, data, format='json')
     assert response.status_code == 400
@@ -122,6 +137,8 @@ def test_cart_item_update_exceeding_stock(client):
         "price_at_time": "10.00"
     }
 
+    client.force_authenticate(user=cart_item.cart.user.user)
+
     response = client.put(url, data, format='json')
     assert response.status_code == 400
     assert "Requested quantity exceeds available stock." in str(response.data)
@@ -130,6 +147,8 @@ def test_cart_item_update_exceeding_stock(client):
 def test_cart_item_partial_update_exceeding_stock(client):
     cart_item = CartItemFactory()
 
+    client.force_authenticate(user=cart_item.cart.user.user)
+    
     url = reverse("cart_items:cart-item-detail", args=[cart_item.id])
     data = {
         "quantity": 104

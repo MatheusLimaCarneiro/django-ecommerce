@@ -4,6 +4,7 @@ from rest_framework.test import APIClient
 from apps.products.models import Product
 from apps.categories.models import Category
 from decimal import Decimal
+from django.contrib.auth.models import User
 
 
 @pytest.mark.django_db
@@ -52,6 +53,10 @@ def test_product_retrieve_view():
 def test_product_create_view():
     client = APIClient()
 
+    admin = User.objects.create_superuser(username='admin', password='adminpass', email= 'admin@example.com')
+
+    client.force_authenticate(user=admin)
+
     category = Category.objects.create(name="Electronics")
 
     url = reverse("products:products-list")
@@ -72,6 +77,10 @@ def test_product_create_view():
 @pytest.mark.django_db
 def test_product_update_view():
     client = APIClient()
+
+    admin = User.objects.create_superuser(username='admin', password='adminpass', email= 'admin@example.com')
+
+    client.force_authenticate(user=admin)
 
     category = Category.objects.create(name="Electronics")
     product = Product.objects.create(
@@ -105,6 +114,11 @@ def test_product_partial_update_view():
     client = APIClient()
 
     category = Category.objects.create(name="Electronics")
+
+    admin = User.objects.create_superuser(username='admin', password='adminpass', email= 'admin@example.com')
+
+    client.force_authenticate(user=admin)
+    
     product = Product.objects.create(
         name="Headphones",
         category=category,
@@ -128,6 +142,11 @@ def test_product_delete_view():
     client = APIClient()
 
     category = Category.objects.create(name="Electronics")
+
+    admin = User.objects.create_superuser(username='admin', password='adminpass', email= 'admin@example.com')
+
+    client.force_authenticate(user=admin)
+    
     product = Product.objects.create(
         name="Camera",
         category=category,

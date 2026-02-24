@@ -9,6 +9,8 @@ def test_customerprofile_list_view():
     client = APIClient()
 
     user = User.objects.create_user(username="u1")
+    client.force_authenticate(user=user)
+
     CustomerProfile.objects.create(
         user=user, phone="1", address="a", city="a", state="a"
     )
@@ -25,6 +27,8 @@ def test_customerprofile_retrieve_view():
     client = APIClient()
 
     user = User.objects.create_user(username="u1")
+    client.force_authenticate(user=user)
+
     profile = CustomerProfile.objects.create(
         user=user, phone="1", address="a", city="a", state="a"
     )
@@ -41,10 +45,10 @@ def test_customerprofile_create_view():
     client = APIClient()
 
     user = User.objects.create_user(username="u1")
+    client.force_authenticate(user=user)
 
     url = reverse("customers:customers-list")
     data = {
-        "user": user.id,
         "phone": "333",
         "address": "Rua XPTO",
         "city": "SP",
@@ -61,13 +65,14 @@ def test_customerprofile_update_view():
     client = APIClient()
 
     user = User.objects.create_user(username="u1")
+    client.force_authenticate(user=user)
+
     profile = CustomerProfile.objects.create(
         user=user, phone="111", address="A", city="A", state="A"
     )
 
     url = reverse("customers:customers-detail", args=[profile.id])
     data = {
-        "user": user.id,
         "phone": "999",
         "address": "Nova Rua",
         "city": "RJ",
@@ -85,6 +90,7 @@ def test_customerprofile_delete_view():
     client = APIClient()
 
     user = User.objects.create_user(username="u1")
+    client.force_authenticate(user=user)
     profile = CustomerProfile.objects.create(
         user=user, phone="111", address="A", city="A", state="A"
     )

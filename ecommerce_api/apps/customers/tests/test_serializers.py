@@ -21,7 +21,6 @@ def test_customerprofile_serializer_data():
     assert data["email"] == "m@x.com"
     assert data["phone"] == "123"
     assert "created_at" in data
-    assert "user" in data
 
 
 @pytest.mark.django_db
@@ -29,7 +28,6 @@ def test_customerprofile_serializer_create():
     user = User.objects.create_user(username="novo")
 
     data = {
-        "user": user.id,
         "phone": "999",
         "address": "Rua Teste",
         "city": "SP",
@@ -39,13 +37,12 @@ def test_customerprofile_serializer_create():
     serializer = CustomerProfileSerializer(data=data)
     assert serializer.is_valid() is True
 
-    instance = serializer.save()
+    instance = serializer.save(user=user)
     assert instance.phone == "999"
 
 @pytest.mark.django_db
 def test_invalid_customerprofile_serializer():
     data = {
-        "user": None,
         "phone": "",
         "address": "Rua Teste",
         "city": "SP",
@@ -54,5 +51,4 @@ def test_invalid_customerprofile_serializer():
 
     serializer = CustomerProfileSerializer(data=data)
     assert serializer.is_valid() is False
-    assert "user" in serializer.errors
     assert "phone" in serializer.errors
