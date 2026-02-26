@@ -43,7 +43,7 @@ def test_customerprofile_serializer_create():
 @pytest.mark.django_db
 def test_invalid_customerprofile_serializer():
     data = {
-        "phone": "",
+        "phone": "1"*21,
         "address": "Rua Teste",
         "city": "SP",
         "state": "SP"
