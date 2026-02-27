@@ -3,7 +3,7 @@ from .models import Product
 from .serializer import ProductSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework import status
 from apps.customers.models import CustomerProfile
 from apps.reviews.serializer import ReviewSerializer
@@ -13,9 +13,13 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
 
     def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            return [AllowAny()]
+
         if self.action == "reviews":
             return [IsAuthenticated()]
-        return super().get_permissions()
+
+        return [IsAdminUser()]
 
     @action(detail=True, methods=["POST"])
     def reviews(self, request, pk=None):

@@ -2,11 +2,18 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from django.urls import reverse
 from apps.categories.models import Category
+from django.contrib.auth import get_user_model
 
 class CategoryViewSetTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.list_url = reverse('categories:categories-list')
+
+        User = get_user_model()
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+
+        self.client.force_authenticate(user=self.user)
+
         self.category = Category.objects.create(
             name='Books',
             description='All kinds of books'
