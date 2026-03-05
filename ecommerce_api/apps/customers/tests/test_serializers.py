@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth.models import User
 from apps.customers.models import CustomerProfile
-from apps.customers.serializer import CustomerProfileSerializer
+from apps.customers.serializers.customer import CustomerProfileSerializer
 
 @pytest.mark.django_db
 def test_customerprofile_serializer_data():

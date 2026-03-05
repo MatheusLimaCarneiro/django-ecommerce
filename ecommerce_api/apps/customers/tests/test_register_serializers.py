@@ -1,6 +1,6 @@
 import pytest
 from django.contrib.auth.models import User
-from apps.customers.registerSerializer import RegisterSerializer
+from apps.customers.serializers.register import RegisterSerializer
 
 @pytest.mark.django_db
 def test_register_serializer_valid_data():
