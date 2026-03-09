@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomerProfile
+from ..models import CustomerProfile
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)

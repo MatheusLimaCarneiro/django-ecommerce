@@ -1,6 +1,6 @@
 from rest_framework import viewsets, mixins
-from .models import CustomerProfile
-from .serializer import CustomerProfileSerializer
+from ..models import CustomerProfile
+from ..serializers.customer import CustomerProfileSerializer
 from rest_framework.permissions import IsAuthenticated
 
 class CustomerProfileViewSet(
@@ -13,6 +13,3 @@ class CustomerProfileViewSet(
 
     def get_queryset(self):
         return CustomerProfile.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
