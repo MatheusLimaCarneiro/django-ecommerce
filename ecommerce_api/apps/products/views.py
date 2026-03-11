@@ -9,9 +9,15 @@ from apps.customers.models import CustomerProfile
 from apps.reviews.serializer import ReviewSerializer
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_authenticated and user.is_staff:
+            return Product.objects.all()
+        return Product.objects.filter(is_active=True)
+        
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:
             return [AllowAny()]

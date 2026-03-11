@@ -161,3 +161,100 @@ def test_product_delete_view():
 
     assert response.status_code == 204
     assert Product.objects.count() == 0
+
+@pytest.mark.django_db
+def test_product_list_hides_inactive_products():
+    client = APIClient()
+
+    category = Category.objects.create(name="Electronics")
+    Product.objects.create(
+        name="Active Product",
+        category=category,
+        description="An active product",
+        price=199.99,
+        stock=10,
+        is_active=True
+    )
+    Product.objects.create(
+        name="Inactive Product",
+        category=category,
+        description="An inactive product",
+        price=299.99,
+        stock=5,
+        is_active=False
+    )
+
+    url = reverse("products:products-list")
+    response = client.get(url)
+
+    assert response.status_code == 200
+    assert len(response.data) == 1
+    assert response.data[0]["name"] == "Active Product"
+
+@pytest.mark.django_db
+def test_product_invalid_create_requires_admin():
+    client = APIClient()
+
+    url = reverse("products:products-list")
+    data = {
+        "name": "Unauthorized Product",
+        "category": 1,
+        "description": "Should not be created",
+        "price": 99.99,
+        "stock": 10,
+        "is_active": True
+    }
+
+    response = client.post(url, data)
+    assert response.status_code == 401
+
+@pytest.mark.django_db
+def test_product_create_requires_admin():
+    client = APIClient()
+
+    user = User.objects.create_user(username='user', password='userpass', email= 'user@example.com')
+
+    client.force_authenticate(user=user)
+
+    url = reverse("products:products-list")
+    data = {
+        "name": "Unauthorized Product",
+        "category": 1,
+        "description": "Should not be created",
+        "price": 99.99,
+        "stock": 10,
+        "is_active": True
+    }
+
+    response = client.post(url, data)
+    assert response.status_code == 403
+
+@pytest.mark.django_db
+def test_admin_can_see_inactive_products():
+    client = APIClient()
+
+    category = Category.objects.create(name="Electronics")
+    Product.objects.create(
+        name="Active Product",
+        category=category,
+        description="An active product",
+        price=199.99,
+        stock=10,
+        is_active=True
+    )
+    Product.objects.create(
+        name="Inactive Product",
+        category=category,
+        description="An inactive product",
+        price=299.99,
+        stock=5,
+        is_active=False
+    )
+
+    admin = User.objects.create_superuser(username='admin', password='adminpass', email= 'admin@example.com')
+    client.force_authenticate(user=admin)
+
+    url = reverse("products:products-list")
+    response = client.get(url)
+    assert response.status_code == 200
+    assert len(response.data) == 2
