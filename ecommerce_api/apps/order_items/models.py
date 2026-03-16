@@ -23,6 +23,12 @@ class OrderItem(models.Model):
         validators=[MinValueValidator(0)],
     )
 
+    # Use the price stored when the item was added to the cart
+    # to avoid inconsistencies if the product price changes later.
+    def calculate_prices(self, unit_price):
+        self.unit_price = unit_price
+        self.subtotal = unit_price * self.quantity
+
     class Meta:
         verbose_name = "Item do Pedido"
         verbose_name_plural = "Itens do Pedido"

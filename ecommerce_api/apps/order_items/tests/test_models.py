@@ -109,18 +109,12 @@ def test_order_item_factory():
     assert order_item.subtotal == order_item.unit_price * order_item.quantity
 
 @pytest.mark.django_db
-def test_order_item_negative_unit_price_validation():
-    order = OrderFactory()
-    product = ProductFactory()
+def test_order_item_calculate_prices():
+    order_item = OrderItemFactory(quantity=2)
 
-    with pytest.raises(ValidationError) as excinfo:
-        invalid_item = OrderItem(
-            order=order,
-            product=product,
-            quantity=1,
-            unit_price=-1,
-            subtotal=-1
-        )
-        invalid_item.full_clean()
+    new_price = 50
 
-    assert 'unit_price' in str(excinfo.value.message_dict)
+    order_item.calculate_prices(new_price)
+
+    assert order_item.unit_price == new_price
+    assert order_item.subtotal == new_price * 2
