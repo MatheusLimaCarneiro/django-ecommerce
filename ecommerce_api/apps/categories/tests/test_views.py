@@ -10,7 +10,7 @@ class CategoryViewSetTest(TestCase):
         self.list_url = reverse('categories:categories-list')
 
         User = get_user_model()
-        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.user = User.objects.create_superuser(username='admin', password='adminpass', email='admin@example.com')
 
         self.client.force_authenticate(user=self.user)
 
@@ -88,3 +88,14 @@ class CategoryViewSetTest(TestCase):
 
         self.assertEqual(response.status_code, 204)
         self.assertEqual(Category.objects.count(), 0)
+
+    def test_user_cannot_create_category(self):
+        self.client.force_authenticate(user=None)
+
+        payload = {
+            'name': 'Unauthorized Category',
+            'description': 'Should not be created'
+        }
+        response = self.client.post(self.list_url, payload, format='json')
+
+        self.assertEqual(response.status_code, 401)
