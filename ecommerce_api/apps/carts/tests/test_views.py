@@ -19,13 +19,13 @@ def test_cart_list_view(client):
 
     client.force_authenticate(user=user)
 
-    Cart.objects.create(user=customer)
+    cart =Cart.objects.create(customer=customer)
 
     url = reverse("carts:carts-list")
     response = client.get(url)
 
     assert response.status_code == 200
-    assert len(response.data) == 1
+    assert response.data["id"] == cart.id
 
 
 @pytest.mark.django_db
@@ -35,7 +35,7 @@ def test_cart_retrieve_view(client):
 
     client.force_authenticate(user=user)
     
-    cart = Cart.objects.create(user=customer)
+    cart = Cart.objects.create(customer=customer)
 
     url = reverse("carts:carts-detail", args=[cart.id])
     response = client.get(url)
@@ -45,33 +45,16 @@ def test_cart_retrieve_view(client):
 
 
 @pytest.mark.django_db
-def test_cart_create_view(client):
-    user = User.objects.create_user(username="matheus", password="123")
-    customer = CustomerProfile.objects.create(user=user)
-
-    client.force_authenticate(user=user)
-
-    url = reverse("carts:carts-list")
-    data = {
-        "user": customer.id
-    }
-    response = client.post(url, data, format='json')
-
-    assert response.status_code == 201
-    assert response.data["user"] == customer.id
-
-
-@pytest.mark.django_db
 def test_cart_update_not_allowed(client):
     user = User.objects.create_user(username="matheus", password="123")
     customer = CustomerProfile.objects.create(user=user)
 
     client.force_authenticate(user=user)
 
-    cart = Cart.objects.create(user=customer)
+    cart = Cart.objects.create(customer=customer)
 
     url = reverse("carts:carts-detail", args=[cart.id])
-    response = client.put(url, {"user": customer.id}, format="json")
+    response = client.put(url, {"customer": customer.id}, format="json")
 
     assert response.status_code == 405
 
@@ -82,7 +65,7 @@ def test_cart_delete_view(client):
 
     client.force_authenticate(user=user)
 
-    cart = Cart.objects.create(user=customer)
+    cart = Cart.objects.create(customer=customer)
 
     url = reverse("carts:carts-detail", args=[cart.id])
     response = client.delete(url)
@@ -93,11 +76,11 @@ def test_cart_delete_view(client):
 @pytest.mark.django_db
 def test_cart_checkout(client):
     user = UserFactory()
-    customer = CustomerProfileFactory(user=user)
+    customer = CustomerProfile.objects.create(user=user)
 
     client.force_authenticate(user=user)
 
-    cart = Cart.objects.create(user=customer)
+    cart = Cart.objects.create(customer=customer)
 
     category = CategoryFactory()
     product = ProductFactory(category=category)
@@ -127,11 +110,11 @@ def test_cart_checkout(client):
 @pytest.mark.django_db
 def test_cart_checkout_multiple_items(client):
     user = UserFactory()
-    customer = CustomerProfileFactory(user=user)
+    customer = CustomerProfile.objects.create(user=user)
 
     client.force_authenticate(user=user)
 
-    cart = Cart.objects.create(user=customer)
+    cart = Cart.objects.create(customer=customer)
 
     category = CategoryFactory()
     product1 = ProductFactory(category=category)
@@ -161,7 +144,7 @@ def test_user_cannot_access_other_user_cart(client):
     customer1 = CustomerProfileFactory(user=user1)
     customer2 = CustomerProfileFactory(user=user2)
 
-    cart = CartFactory(user=customer1)
+    cart = CartFactory(customer=customer1)
 
     client.force_authenticate(user=user2)
 
@@ -173,11 +156,11 @@ def test_user_cannot_access_other_user_cart(client):
 @pytest.mark.django_db
 def test_checkout_empty_cart(client):
     user = UserFactory()
-    customer = CustomerProfileFactory(user=user)
+    customer = CustomerProfile.objects.create(user=user)
 
     client.force_authenticate(user=user)
 
-    cart = Cart.objects.create(user=customer)
+    cart = Cart.objects.create(customer=customer)
 
     url = reverse("carts:carts-checkout", args=[cart.id])
     response = client.post(url)

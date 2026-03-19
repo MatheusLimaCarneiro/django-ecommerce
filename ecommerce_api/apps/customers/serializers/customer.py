@@ -8,4 +8,4 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerProfile
         fields = ['id','username','email','phone','address','city','state','created_at']
-        read_only_fields = ['created_at']
+        read_only_fields = ['created_at', 'username', 'email']

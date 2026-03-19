@@ -12,7 +12,6 @@ from rest_framework import status
 
 class CartViewSet(
     mixins.ListModelMixin,
-    mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet
@@ -21,8 +20,17 @@ class CartViewSet(
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Cart.objects.filter(user__user=self.request.user)
+        return Cart.objects.filter(customer= self.request.user.profile)
 
+    # Override list to return the current user's cart or create one if it doesn't exist instead of a list of carts.
+    # This is because each user should only have one cart, so listing all carts doesn't make sense in this context.
+    def list(self, request, *args, **kwargs):
+        customer = request.user.profile
+
+        cart, _ = Cart.objects.get_or_create(customer=customer)
+
+        serializer = self.get_serializer(cart)
+        return Response(serializer.data)
 
     @action(detail=True, methods=["POST"])
     def checkout(self, request, pk=None):
@@ -50,7 +58,7 @@ class CartViewSet(
                 )
 
         with transaction.atomic():
-            order = Order.objects.create(customer=cart.user)
+            order = Order.objects.create(customer=cart.customer)
             
             for item in cart.items.all():
                 order_item = OrderItem(
