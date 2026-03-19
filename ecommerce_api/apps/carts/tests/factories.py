@@ -24,7 +24,7 @@ class CartFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Cart
 
-    user = factory.SubFactory(CustomerProfileFactory)
+    customer = factory.SubFactory(CustomerProfileFactory)
 
 class CategoryFactory(factory.django.DjangoModelFactory):
     class Meta:

@@ -10,9 +10,9 @@ def test_create_cart():
 
     customer = CustomerProfile.objects.create(user=user)
 
-    cart = Cart.objects.create(user = customer)
+    cart = Cart.objects.create(customer = customer)
 
-    assert cart.user == customer
+    assert cart.customer == customer
     assert cart.id is not None
     assert cart.created_at is not None
 
@@ -23,7 +23,7 @@ def test_cart_str():
 
     customer = CustomerProfile.objects.create(user=user)
 
-    cart = Cart.objects.create(user = customer)
+    cart = Cart.objects.create(customer = customer)
 
     expected_str = "Cart of {}".format(customer)
 
@@ -38,8 +38,8 @@ def test_cart_ordering():
     customer1 = CustomerProfile.objects.create(user=user1)
     customer2 = CustomerProfile.objects.create(user=user2)
 
-    cart1 = Cart.objects.create(user=customer1)
-    cart2 = Cart.objects.create(user=customer2)
+    cart1 = Cart.objects.create(customer=customer1)
+    cart2 = Cart.objects.create(customer=customer2)
 
     carts = Cart.objects.all()
     assert list(carts) == [cart1, cart2]
@@ -50,7 +50,7 @@ def test_user_can_have_only_one_cart():
     user = User.objects.create_user(username="matheus", password="123")
     customer = CustomerProfile.objects.create(user=user)
 
-    Cart.objects.create(user=customer)
+    Cart.objects.create(customer=customer)
 
     with pytest.raises(IntegrityError):
-        Cart.objects.create(user=customer)
+        Cart.objects.create(customer=customer)
