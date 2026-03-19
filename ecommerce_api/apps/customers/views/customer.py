@@ -4,20 +4,27 @@ from ..serializers.customer import CustomerProfileSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework import status
 
-class CustomerProfileViewSet(
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    viewsets.GenericViewSet
-):
+class CustomerProfileViewSet(viewsets.GenericViewSet):
     serializer_class = CustomerProfileSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        return CustomerProfile.objects.filter(user=self.request.user)
+    def get_object(self):
+        return CustomerProfile.objects.get(user=self.request.user)
 
-    @action(detail=False, methods=["GET"])
+    @action(detail=False, methods=["GET", "PATCH"])
     def me(self, request):
-        customer = CustomerProfile.objects.get(user=request.user)
-        serializer = self.get_serializer(customer)
-        return Response(serializer.data)
+        customer = self.get_object()
+        
+        if request.method == "GET":
+            serializer = self.get_serializer(customer)
+            return Response(serializer.data)
+        
+        elif request.method == "PATCH":
+            serializer = self.get_serializer(customer, data=request.data, partial=True)
+            
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            
+            return Response(serializer.data, status= status.HTTP_200_OK)
