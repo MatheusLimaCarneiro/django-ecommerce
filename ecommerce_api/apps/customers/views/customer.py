@@ -1,4 +1,4 @@
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets
 from ..models import CustomerProfile
 from ..serializers.customer import CustomerProfileSerializer
 from rest_framework.permissions import IsAuthenticated
