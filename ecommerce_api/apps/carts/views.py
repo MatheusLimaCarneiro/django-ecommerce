@@ -20,12 +20,12 @@ class CartViewSet(
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Cart.objects.filter(customer= self.request.user.profile)
+        return Cart.objects.filter(customer= self.request.user.customerprofile)
 
     # Override list to return the current user's cart or create one if it doesn't exist instead of a list of carts.
     # This is because each user should only have one cart, so listing all carts doesn't make sense in this context.
     def list(self, request, *args, **kwargs):
-        customer = request.user.profile
+        customer = request.user.customerprofile
 
         cart, _ = Cart.objects.get_or_create(customer=customer)
 

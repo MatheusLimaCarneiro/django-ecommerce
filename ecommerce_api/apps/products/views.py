@@ -32,7 +32,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         product = self.get_object()
 
         try:
-            customer = request.user.profile
+            customer = request.user.customerprofile
         except CustomerProfile.DoesNotExist:
             return Response(
                 {"detail": "Customer profile not found."},
