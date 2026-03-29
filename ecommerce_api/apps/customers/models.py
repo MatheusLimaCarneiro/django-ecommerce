@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class CustomerProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='customerprofile')
     phone = models.CharField('Telefone', max_length=20, blank=True)
     address = models.CharField('Endereço', max_length=255, blank=True)
     city = models.CharField('Cidade', max_length=100, blank=True)

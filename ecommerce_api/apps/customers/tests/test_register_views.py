@@ -26,7 +26,7 @@ def test_register_view(client):
 
     user = User.objects.get(username="newuser")
     assert user.check_password("strongpassword")
-    assert hasattr(user, 'profile')
+    assert hasattr(user, 'customerprofile')
 
 
 @pytest.mark.django_db

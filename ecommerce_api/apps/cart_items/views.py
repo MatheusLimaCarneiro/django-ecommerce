@@ -14,7 +14,7 @@ class CartItemViewSet(viewsets.ModelViewSet):
     # Override create to associate the new CartItem with the current user's cart.
     # This ensures that when a user adds an item to their cart, it is automatically linked to their cart without needing to specify the cart in the request data.
     def perform_create(self, serializer):
-        customer = self.request.user.profile
+        customer = self.request.user.customerprofile
 
         cart, _ = Cart.objects.get_or_create(customer=customer)
 

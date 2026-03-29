@@ -16,7 +16,7 @@ def test_register_serializer_valid_data():
     assert user.username == "newuser"
     assert user.email == "newuser@example.com"
     assert user.check_password("strongpassword") is True
-    assert hasattr(user, 'profile') is True
+    assert hasattr(user, 'customerprofile') is True
 
 @pytest.mark.django_db
 def test_register_serializer_invalid_email():
