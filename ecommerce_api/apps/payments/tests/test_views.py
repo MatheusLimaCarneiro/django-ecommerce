@@ -1,7 +1,7 @@
 import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
-from apps.payments.tests.factories import PaymentFactory, OrderFactory, CustomerProfileFactory
+from apps.payments.tests.factories import PaymentFactory, OrderFactory, CustomerProfileFactory, ProductFactory, OrderItemFactory
 from apps.payments.models import Payment
 from unittest.mock import patch
 from django.core.exceptions import ValidationError
@@ -158,6 +158,13 @@ def test_payment_confirm_action_payment(client):
     payment = PaymentFactory(status=Payment.Status.PENDING)
     customer = payment.order.customer.user
 
+    product = ProductFactory(stock=10)
+
+    OrderItemFactory(
+        order=payment.order,
+        product=product,
+        quantity=2
+    )
     client.force_authenticate(user=customer)
 
     url = reverse("payments:payment-confirm", args=[payment.id])
@@ -168,8 +175,9 @@ def test_payment_confirm_action_payment(client):
 
     payment.refresh_from_db()
     order = payment.order
-    order.refresh_from_db()
+    product.refresh_from_db()
 
+    assert product.stock == 8
     assert payment.status == Payment.Status.PAID
     assert order.status == order.Status.CONFIRMED
     assert payment.paid_at is not None
@@ -203,6 +211,8 @@ def test_payment_confirm_action_forbidden(client):
 def test_confirm_payment_transaction_rollback():
     payment = PaymentFactory(status=Payment.Status.PENDING)
     order = payment.order
+    product = ProductFactory(stock=10)
+    OrderItemFactory(order=order, product=product, quantity=4)
 
     with patch(
         'apps.payments.models.Order.mark_as_paid',
@@ -214,6 +224,91 @@ def test_confirm_payment_transaction_rollback():
     payment.refresh_from_db()
     order.refresh_from_db()
 
+    assert product.stock == 10
     assert payment.status == Payment.Status.PENDING
     assert order.payment_status == order.PaymentStatus.UNPAID
     assert payment.paid_at is None
+
+@pytest.mark.django_db
+def test_payment_confirm_reduces_stock(client):
+    customer_profile = CustomerProfileFactory()
+    order = OrderFactory(customer=customer_profile)
+    product = ProductFactory(stock=10)
+
+    OrderItemFactory(
+        order=order,
+        product=product,
+        quantity=3
+    )
+
+    payment = PaymentFactory(order=order, status=Payment.Status.PENDING)
+    customer = customer_profile.user
+
+    client.force_authenticate(user=customer)
+
+    url = reverse("payments:payment-confirm", args=[payment.id])
+    response = client.post(url)
+
+    assert response.status_code == 200
+
+    payment.refresh_from_db()
+    product.refresh_from_db()
+
+    assert product.stock == 7
+
+@pytest.mark.django_db
+def test_payment_confirm_fails_when_insufficient_stock(client):
+    customer_profile = CustomerProfileFactory()
+    order = OrderFactory(customer=customer_profile)
+    product = ProductFactory(stock=2)
+
+    OrderItemFactory(
+        order=order,
+        product=product,
+        quantity=3
+    )
+
+    payment = PaymentFactory(order=order, status=Payment.Status.PENDING)
+    customer = customer_profile.user
+
+    client.force_authenticate(user=customer)
+
+    url = reverse("payments:payment-confirm", args=[payment.id])
+    response = client.post(url)
+
+    assert response.status_code == 400
+    assert "detail" in response.data
+
+    payment.refresh_from_db()
+    product.refresh_from_db()
+
+    assert product.stock == 2
+    assert payment.status == Payment.Status.PENDING
+    
+@pytest.mark.django_db
+def test_payment_confirm_action_multiple_items_stock_reduction(client):
+    customer_profile = CustomerProfileFactory()
+    order = OrderFactory(customer=customer_profile)
+    product1 = ProductFactory(stock=10)
+    product2 = ProductFactory(stock=15)
+
+    OrderItemFactory(order=order, product=product1, quantity=3)
+    OrderItemFactory(order=order, product=product2, quantity=2)
+
+    payment = PaymentFactory(order=order, status=Payment.Status.PENDING)
+    customer = customer_profile.user
+
+    client.force_authenticate(user=customer)
+
+    url = reverse("payments:payment-confirm", args=[payment.id])
+    response = client.post(url)
+
+    assert response.status_code == 200
+
+    payment.refresh_from_db()
+    product1.refresh_from_db()
+    product2.refresh_from_db()
+
+    assert product1.stock == 7
+    assert product2.stock == 13
+    assert payment.status == Payment.Status.PAID

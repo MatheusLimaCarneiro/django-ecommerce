@@ -35,12 +35,28 @@ class Payment(models.Model):
             raise ValidationError({
                 'method': "This payment method cannot be used for zero amount orders."
             })
+    
+    def _validate_stock(self):
+        for item in self.order.order_items.select_related("product"):
+            if item.product.stock < item.quantity:
+                raise ValidationError(
+                    f"Insufficient stock for product {item.product.name}"
+                )
+    
+    def _decrease_stock(self):
+        for item in self.order.order_items.select_related("product"):
+            product = item.product
+            product.stock -= item.quantity
+            product.save(update_fields=["stock"])
 
     def confirm_payment(self):
         if self.status != self.Status.PENDING:
             raise ValidationError("Payment is already confirmed or failed.")
 
         with transaction.atomic():
+            self._validate_stock()
+            self._decrease_stock()
+            
             self.status = self.Status.PAID
             self.paid_at = timezone.now()
             self.save(update_fields=['status', 'paid_at'])
