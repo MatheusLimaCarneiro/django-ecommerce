@@ -5,6 +5,7 @@ from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.db import transaction
+from .exceptions import PaymentAlreadyProcessedException, InsufficientStockException
 
 class Payment(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='payment')
@@ -39,9 +40,9 @@ class Payment(models.Model):
     def _validate_stock(self):
         for item in self.order.order_items.select_related("product"):
             if item.product.stock < item.quantity:
-                raise ValidationError(
-                    f"Insufficient stock for product {item.product.name}"
-                )
+                raise InsufficientStockException(
+                detail=f"Insufficient stock for product '{item.product.name}'"
+            )
     
     def _decrease_stock(self):
         for item in self.order.order_items.select_related("product"):
@@ -51,7 +52,7 @@ class Payment(models.Model):
 
     def confirm_payment(self):
         if self.status != self.Status.PENDING:
-            raise ValidationError("Payment is already confirmed or failed.")
+            raise PaymentAlreadyProcessedException()
 
         with transaction.atomic():
             self._validate_stock()

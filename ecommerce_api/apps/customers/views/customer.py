@@ -5,13 +5,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
+from django.shortcuts import get_object_or_404
 
 class CustomerProfileViewSet(viewsets.GenericViewSet):
     serializer_class = CustomerProfileSerializer
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return CustomerProfile.objects.get(user=self.request.user)
+        return get_object_or_404(CustomerProfile, user=self.request.user)
 
     @action(detail=False, methods=["GET", "PATCH"])
     def me(self, request):

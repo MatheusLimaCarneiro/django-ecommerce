@@ -170,3 +170,25 @@ def test_checkout_empty_cart(client):
 
     assert Order.objects.count() == 0
     assert OrderItem.objects.count() == 0
+
+@pytest.mark.django_db
+def test_checkout_insufficient_stock(client):
+    user = UserFactory()
+    customer = CustomerProfile.objects.create(user=user)
+
+    client.force_authenticate(user=user)
+
+    cart = Cart.objects.create(customer=customer)
+
+    category = CategoryFactory()
+    product = ProductFactory(category=category, stock=1)
+    cart_item = CartItemFactory(cart=cart, product=product, quantity=2)
+
+    url = reverse("carts:carts-checkout", args=[cart.id])
+    response = client.post(url)
+
+    assert response.status_code == 400
+    assert response.data["detail"] == f"Not enough stock for product '{product.name}'"
+
+    assert Order.objects.count() == 0
+    assert OrderItem.objects.count() == 0

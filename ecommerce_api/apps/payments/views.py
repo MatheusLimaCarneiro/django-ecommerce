@@ -4,7 +4,6 @@ from rest_framework import viewsets, mixins
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.core.exceptions import ValidationError
 
 class PaymentViewSet(
     mixins.CreateModelMixin,
@@ -27,13 +26,7 @@ class PaymentViewSet(
     def confirm(self, request, pk=None):
         payment = self.get_object()
         
-        try:
-            payment.confirm_payment()
-        except ValidationError as e:
-            return Response(
-                {"detail": str(e)},
-                status=400
-            )
+        payment.confirm_payment()
         
         return Response(
             {"detail": "Payment confirmed successfully."},

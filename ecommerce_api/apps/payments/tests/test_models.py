@@ -2,6 +2,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from apps.payments.models import Payment
 from apps.payments.tests.factories import PaymentFactory, OrderFactory
+from apps.payments.exceptions import PaymentAlreadyProcessedException
 
 @pytest.mark.django_db
 def test_create_payment():
@@ -106,7 +107,7 @@ def test_confirm_payment():
 def test_confirm_payment_invalid_status():
     payment = PaymentFactory(status=Payment.Status.PAID)
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(PaymentAlreadyProcessedException):
         payment.confirm_payment()
 
     payment.refresh_from_db()

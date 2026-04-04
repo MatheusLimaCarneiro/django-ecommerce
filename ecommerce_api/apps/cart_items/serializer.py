@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import CartItem
 from apps.products.models import Product
+from django.shortcuts import get_object_or_404
 
 class CartItemSerializer(serializers.ModelSerializer):
 
@@ -23,7 +24,7 @@ class CartItemSerializer(serializers.ModelSerializer):
             return data
 
         if isinstance(product, int):
-            product = Product.objects.get(pk=product)
+            product = get_object_or_404(Product, pk=product)
 
         if not product.is_active:
             raise serializers.ValidationError(

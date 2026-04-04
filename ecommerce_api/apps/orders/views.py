@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework import status
 from apps.payments.serializer import PaymentSerializer
-from apps.order_items.serializer import OrderItemSerializer
 
 class OrderViewSet(
     mixins.ListModelMixin,

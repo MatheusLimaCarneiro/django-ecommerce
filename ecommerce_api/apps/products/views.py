@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework import status
 from apps.customers.models import CustomerProfile
 from apps.reviews.serializer import ReviewSerializer
+from django.shortcuts import get_object_or_404
 
 class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
@@ -31,13 +32,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     def reviews(self, request, pk=None):
         product = self.get_object()
 
-        try:
-            customer = request.user.customerprofile
-        except CustomerProfile.DoesNotExist:
-            return Response(
-                {"detail": "Customer profile not found."},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        customer = get_object_or_404(CustomerProfile, user=request.user)
 
         serializer = ReviewSerializer(
             data=request.data,

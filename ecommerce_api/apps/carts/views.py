@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from django.db import transaction
 from rest_framework.response import Response
 from rest_framework import status
+from .exceptions import EmptyCartException, InsufficientStockException
 
 class CartViewSet(
     mixins.ListModelMixin,
@@ -45,16 +46,12 @@ class CartViewSet(
 
         # Prevent checkout if the cart is empty
         if not cart.items.exists():
-            return Response(
-                {"detail": "Cannot checkout an empty cart."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            raise EmptyCartException()
         
         for item in cart.items.all():
             if item.product.stock < item.quantity:
-                return Response(
-                    {"detail": f"Not enough stock for product '{item.product.name}'."},
-                    status=status.HTTP_400_BAD_REQUEST
+                raise InsufficientStockException(
+                    detail=f"Not enough stock for product '{item.product.name}'"  
                 )
 
         with transaction.atomic():
